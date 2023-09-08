@@ -8,20 +8,20 @@ public class PlacementSystem : MonoBehaviour
     [SerializeField] private InputManager inputManager;
     [SerializeField] private GameObject mouseIndicator, cellIndicator;
     [SerializeField] private Grid grid;
-
-    [SerializeField]
-    private ObjectsDatabaseSO database;
+    [SerializeField] private ObjectsDatabaseSO database;
+    [SerializeField] private GameObject girdVisualization;
+    [SerializeField] private AudioSource audioSource;
     private int selectedObjectIndex = -1;
-    [SerializeField]
-    private GameObject girdVisualization;
+
+    
 
     private void Start()
     {
         StopPlacement();
     }
-    private void StartPlacement(int ID)
+    public void StartPlacement(int ID)//作为按钮的触发事件函数
     {
-        StopPlacement();
+        //StopPlacement();
         selectedObjectIndex = database.objectsDate.FindIndex(data => data.ID == ID);//返回ID相同物体在objectsDate的位置，未找到返回-1
         if (selectedObjectIndex < 0)
         {
@@ -40,6 +40,7 @@ public class PlacementSystem : MonoBehaviour
             return;
         }
         //使家具在网格上生成
+        audioSource.Play();
         Vector3 mousePosition = inputManager.GetSelectedMapPosition();
         Vector3Int gridPosition = grid.WorldToCell(mousePosition);
         GameObject newObject = Instantiate(database.objectsDate[selectedObjectIndex].Prefab);
@@ -58,7 +59,7 @@ public class PlacementSystem : MonoBehaviour
     {
         if (selectedObjectIndex < 0)
             return;
-        
+        //鼠标位置控制格子坐标的位置
         Vector3 mousePosition = inputManager.GetSelectedMapPosition();
         Vector3Int gridPosition = grid.WorldToCell(mousePosition);//世界坐标中鼠标坐标变成网格坐标
         mouseIndicator.transform.position = mousePosition;
