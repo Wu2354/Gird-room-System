@@ -6,22 +6,23 @@ using UnityEngine;
 public class PlacementSystem : MonoBehaviour
 {
     [SerializeField] private InputManager inputManager;
-    [SerializeField] private GameObject mouseIndicator, cellIndicator;
+    [SerializeField] private GameObject mouseIndicator;
     [SerializeField] private Grid grid;
     [SerializeField] private ObjectsDatabaseSO database;
     [SerializeField] private GameObject girdVisualization;
     [SerializeField] private AudioSource audioSource;
+    [SerializeField] private PreviewSystem previewSystem;
     private int selectedObjectIndex = -1;
-    private GridData floorData, furnitureData;
-    private Renderer previewRenderer;
+    private GridData floorData, furnitureData;    
     private List<GameObject> placeedObjects = new();
+    private Vector3Int lastDetectedPosition = Vector3Int.zero;
+    bool isRemoving;
 
     private void Start()
     {
         StopPlacement();
         floorData = new();
-        furnitureData = new();
-        previewRenderer = cellIndicator.GetComponentInChildren<Renderer>();
+        furnitureData = new();       
     }
 
     void Update()
@@ -31,12 +32,13 @@ public class PlacementSystem : MonoBehaviour
         //鼠标位置控制格子坐标的位置
         Vector3 mousePosition = inputManager.GetSelectedMapPosition();
         Vector3Int gridPosition = grid.WorldToCell(mousePosition);//世界坐标中鼠标坐标变成网格坐标
+        if (lastDetectedPosition != gridPosition)
+        {
+            bool placementValidity = CheckPlacementValidity(gridPosition, selectedObjectIndex);
 
-        bool placementValidity = CheckPlacementValidity(gridPosition, selectedObjectIndex);
-        previewRenderer.material.color = placementValidity ? Color.white : Color.red;
-
-        mouseIndicator.transform.position = mousePosition;
-        cellIndicator.transform.position = grid.CellToWorld(gridPosition);//使标识格子物体在世界坐标显示
+            mouseIndicator.transform.position = mousePosition;
+            previewSystem.UpdatePosition(grid.CellToWorld(gridPosition), placementValidity);
+        }        
     }
 
     public void StartPlacement(int ID)//作为按钮的触发事件函数
@@ -47,7 +49,9 @@ public class PlacementSystem : MonoBehaviour
             Debug.LogError($"没有{ID}");
         }
         girdVisualization.SetActive(true);
-        cellIndicator.SetActive(true);
+        previewSystem.StartShowingPlacementPreview(
+            database.objectsDate[selectedObjectIndex].Prefab, 
+            database.objectsDate[selectedObjectIndex].Size);
         inputManager.OnClicked += PlaceStructure;
         inputManager.OnExit += StopPlacement;
     }
@@ -77,6 +81,7 @@ public class PlacementSystem : MonoBehaviour
         selectedData.AddObjectAt(gridPosition, database.objectsDate[selectedObjectIndex].Size,
             database.objectsDate[selectedObjectIndex].ID,
             placeedObjects.Count - 1);
+        previewSystem.UpdatePosition(grid.CellToWorld(gridPosition),false);
     }
 
     //检查能否放置
@@ -90,9 +95,10 @@ public class PlacementSystem : MonoBehaviour
     {
         selectedObjectIndex = -1;
         girdVisualization.SetActive(false);
-        cellIndicator.SetActive(false);
+        previewSystem.StopShowingPreview();
         inputManager.OnClicked -= PlaceStructure;
         inputManager.OnExit -= StopPlacement;
+        lastDetectedPosition = Vector3Int.zero;
     }
     
 }
