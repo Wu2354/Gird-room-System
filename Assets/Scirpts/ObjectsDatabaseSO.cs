@@ -6,7 +6,7 @@ using UnityEngine;
 [CreateAssetMenu]
 public class ObjectsDatabaseSO : ScriptableObject
 {
-    public List<ObjectData> objectsDate;    
+    public List<ObjectData> objectsData;    
 }
 
 

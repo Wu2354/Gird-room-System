@@ -5,13 +5,10 @@ using UnityEngine;
 
 public class GridData 
 {
-    //存储了哪些网格被哪些对象占用
+    //存储物体信息（PlacementData）和占用的格子信息
     Dictionary<Vector3Int, PlacementData> placedObjects = new();
 
-    /*
-     * 在指定的网格位置摆放一个对象。它首先计算对象将占用的所有网格位置，然后创建一个PlacementData对象来存储这些信息。
-     * 接着，它会将每个占用的位置添加到placedObjects字典中。如果一个位置已经被另一个对象占用，该方法会抛出一个异常。
-     */
+    //计算位置（CalculatePositions）和检查并保存所有信息到placedObjects中
     public void AddObjectAt(Vector3Int gridPosition, Vector2Int objectSize, int ID, int placedObjectIndex)
     {
         //保存已经占据的位置数据
@@ -57,6 +54,7 @@ public class GridData
 
 }
     
+  //物体的信息类别存储
 public class PlacementData 
 {
     public List<Vector3Int> occupiedPositions;
