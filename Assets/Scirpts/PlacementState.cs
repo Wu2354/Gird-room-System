@@ -32,7 +32,7 @@ public class PlacementState : IBuildingState
         this.objectPlacer = objectPlacer;
 
         selectedObjectIndex = database.objectsData.FindIndex(data => data.ID == ID);//返回ID相同物体在objectsDate的位置，未找到返回-1
-        if (selectedObjectIndex > -1)
+        if (selectedObjectIndex >= 0)
         {
             previewSystem.StartShowingPlacementPreview(
                database.objectsData[selectedObjectIndex].Prefab,

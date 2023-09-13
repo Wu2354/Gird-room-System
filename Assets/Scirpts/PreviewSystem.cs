@@ -1,8 +1,4 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-
 public class PreviewSystem : MonoBehaviour
 {
     //在y轴上的偏移量
@@ -37,10 +33,18 @@ public class PreviewSystem : MonoBehaviour
         }
         previewObject = Instantiate(prefab);
         PreparePreview(previewObject);
-        PrepareCursor(size);
+        PrepareCursor(size); 
         cellIndicator.SetActive(true);
     }
-
+    public void StopShowingPreview()
+    {
+        cellIndicator.SetActive (false);
+        if (previewObject != null)
+        {
+            Destroy(previewObject);
+        }
+        
+    }
     //预览物体将要摆放的位置
     private void PrepareCursor(Vector2Int size)
     {
@@ -70,11 +74,7 @@ public class PreviewSystem : MonoBehaviour
         }
     }
 
-    public void StopShowingPreview()
-    {
-        cellIndicator.SetActive (false);
-        Destroy(previewObject );
-    }
+    
 
     //预览物体跟随鼠标移动并判断可放位置
     public void UpdatePosition( Vector3 position, bool validity)
@@ -116,5 +116,11 @@ public class PreviewSystem : MonoBehaviour
             position.x, 
             position.y+ previewYOffset,
             position.z);
+    }
+
+    internal void StartShowingRemovePreview()
+    {
+        PrepareCursor(Vector2Int.one);
+        ApplyFeedbackToCursor(false);
     }
 }
