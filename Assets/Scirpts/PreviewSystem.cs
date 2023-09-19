@@ -4,6 +4,9 @@ public class PreviewSystem : MonoBehaviour
     //在y轴上的偏移量
     [SerializeField]
     private float previewYOffset = 0.06f;
+    //旋转的角度
+    private float rotateAngle = 90f;
+    private Vector2Int rotateSize;
 
     [SerializeField]
     private GameObject cellIndicator;
@@ -14,7 +17,8 @@ public class PreviewSystem : MonoBehaviour
     private Material previewMaterialInstance;
 
     private Renderer cellIndicatorRenderer;
-    
+   
+
     private void Start()
     {
         //创建并复制一个新的材质实例，定制其外观(防止用同一材质引起所有物体变化和消耗性能)
@@ -26,6 +30,7 @@ public class PreviewSystem : MonoBehaviour
     //对不同预制体和不同尺寸物体进行展示
     public void StartShowingPlacementPreview(GameObject prefab, Vector2Int size)
     {
+        
         //之前有previewObject，销毁
         if (previewObject != null)
         {
@@ -35,7 +40,30 @@ public class PreviewSystem : MonoBehaviour
         PreparePreview(previewObject);
         PrepareCursor(size); 
         cellIndicator.SetActive(true);
+        rotateSize = size;//方便后面旋转改变Size
     }
+
+    public void RotatePreview()
+    {
+        if(previewObject != null)
+        {
+            previewObject.transform.Rotate(0, rotateAngle, 0);
+            // 旋转尺寸
+            rotateSize = new Vector2Int(rotateSize.y, rotateSize.x);
+            //格子进行旋转匹配
+            cellIndicator.transform.Rotate(0, rotateAngle, 0);
+            // 预览格子占据位置
+            PrepareCursor(rotateSize);
+        }
+    }
+
+    internal void StartShowingRemovePreview()
+    {
+        cellIndicator.SetActive(true );
+        PrepareCursor(Vector2Int.one);
+        ApplyFeedbackToCursor(false);
+    }
+
     public void StopShowingPreview()
     {
         cellIndicator.SetActive (false);
@@ -45,6 +73,12 @@ public class PreviewSystem : MonoBehaviour
         }
         
     }
+
+    public Quaternion GetCurrentRotation()
+    {
+        return previewObject.transform.rotation;
+    }
+
     //预览物体将要摆放的位置
     private void PrepareCursor(Vector2Int size)
     {
@@ -73,9 +107,7 @@ public class PreviewSystem : MonoBehaviour
             renderer.materials = materials;
         }
     }
-
     
-
     //预览物体跟随鼠标移动并判断可放位置
     public void UpdatePosition( Vector3 position, bool validity)
     {
@@ -89,6 +121,7 @@ public class PreviewSystem : MonoBehaviour
         ApplyFeedbackToCursor(validity);
     }
 
+    //根据状态改变对应格子的颜色
     private void ApplyFeedbackToCursor(bool validity)
     {
         Color c = validity ? Color.white : Color.red;
@@ -97,11 +130,7 @@ public class PreviewSystem : MonoBehaviour
         cellIndicatorRenderer.material.color = c;
     }
 
-    private void MoveCursor(Vector3 position)
-    {
-        cellIndicator.transform.position = position;
-    }
-
+    //根据状态改变物体的颜色
     private void ApplyFeedbackToPreview(bool validity)
     {
         Color c = validity ? Color.white : Color.red;
@@ -109,7 +138,11 @@ public class PreviewSystem : MonoBehaviour
         previewMaterialInstance.color = c;
 
     }
-
+    private void MoveCursor(Vector3 position)
+    {
+        cellIndicator.transform.position = position;
+    }
+    
     private void MovePreview(Vector3 position)
     {
         previewObject.transform.position = new Vector3(
@@ -118,9 +151,13 @@ public class PreviewSystem : MonoBehaviour
             position.z);
     }
 
-    internal void StartShowingRemovePreview()
+    //判断是否旋转
+    public bool IsPreviewObjectRotated()
     {
-        PrepareCursor(Vector2Int.one);
-        ApplyFeedbackToCursor(false);
+        return Mathf.Abs(previewObject.transform.eulerAngles.y - rotateAngle) < 0.1f ||
+               Mathf.Abs(previewObject.transform.eulerAngles.y - 3 * rotateAngle) < 0.1f; // 对于90度旋转
     }
+
+
+
 }

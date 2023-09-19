@@ -7,22 +7,19 @@ public class ObjectPlacer : MonoBehaviour
 {
     private List<GameObject> placeedObjects = new();
 
-    public int PlaceObject(GameObject prefab, Vector3 position)
+    public int PlaceObject(GameObject prefab, Vector3 position,Quaternion quaternion)
     {
-        GameObject newObject = Instantiate(prefab);
-        newObject.transform.position = position;
+        GameObject newObject = Instantiate(prefab, position, quaternion);
+        //newObject.transform.position = position;
         placeedObjects.Add(newObject);
         return placeedObjects.Count - 1;
     }
 
-    void Start()
+    internal void RemoveObjectAt(int gameObjectIndex)
     {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
+        if (placeedObjects.Count <= gameObjectIndex || placeedObjects[gameObjectIndex] == null)
+            return;
+        Destroy(placeedObjects[gameObjectIndex]);
+        placeedObjects[gameObjectIndex] = null;
+    }    
 }

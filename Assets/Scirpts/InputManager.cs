@@ -14,7 +14,7 @@ public class InputManager : MonoBehaviour
     
     private Vector3 lastPosition;
 
-    public event Action OnClicked, OnExit;
+    public event Action OnClicked, OnExit,OnRotate;
            
     private void Update()
     {
@@ -22,6 +22,8 @@ public class InputManager : MonoBehaviour
             OnClicked?.Invoke();                
         if(Input.GetKeyDown(KeyCode.Space))
             OnExit?.Invoke();
+        if(Input.GetKeyDown(KeyCode.R))
+            OnRotate?.Invoke();
     }
 
     public bool IsPointerOverUI()

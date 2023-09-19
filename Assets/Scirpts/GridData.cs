@@ -7,12 +7,22 @@ public class GridData
 {
     //存储物体信息（PlacementData）和占用的格子信息
     Dictionary<Vector3Int, PlacementData> placedObjects = new();
+    PreviewSystem previewSystem;
+
+    public GridData(PreviewSystem system)
+    {
+        previewSystem = system;
+    }   
 
     //计算位置（CalculatePositions）和检查并保存所有信息到placedObjects中
     public void AddObjectAt(Vector3Int gridPosition, Vector2Int objectSize, int ID, int placedObjectIndex)
     {
+        //判断旋转后改变Size也帮助之后逻辑改变占据的格子信息
+        bool isRotated = previewSystem.IsPreviewObjectRotated();
+        Vector2Int finalObjectSize = isRotated ? new Vector2Int(objectSize.y, objectSize.x) : objectSize;
+
         //保存已经占据的位置数据
-        List<Vector3Int> positionToOccupy = CalculatePositions(gridPosition, objectSize);
+        List<Vector3Int> positionToOccupy = CalculatePositions(gridPosition, finalObjectSize);
         PlacementData data = new PlacementData(positionToOccupy , ID , placedObjectIndex);
         
         foreach(var pos in positionToOccupy)
@@ -41,7 +51,10 @@ public class GridData
 
     public bool CanPlaceObjectAt(Vector3Int gridPosition, Vector2Int objectSize)
     {
-        List<Vector3Int> positionToOccupy = CalculatePositions( gridPosition,  objectSize);
+        bool isRotated = previewSystem.IsPreviewObjectRotated();
+        Vector2Int finalObjectSize = isRotated ? new Vector2Int(objectSize.y, objectSize.x) : objectSize;
+        
+        List<Vector3Int> positionToOccupy = CalculatePositions( gridPosition,  finalObjectSize);
         foreach (var pos in positionToOccupy)
         {
             if (placedObjects.ContainsKey(pos))
@@ -52,6 +65,20 @@ public class GridData
         return true;
     }
 
+    internal int GetRepresnetationIndex(Vector3Int gridPosition)
+    {
+        if(placedObjects.ContainsKey(gridPosition) == false)
+            return -1;
+        return placedObjects[gridPosition].PlacedObjectIndex;   
+    }
+
+    internal void RemoveObjectAt(Vector3Int gridPosition)
+    {
+        foreach(var pos in placedObjects[gridPosition].occupiedPositions)
+        {
+            placedObjects.Remove(pos);
+        }
+    }
 }
     
   //物体的信息类别存储

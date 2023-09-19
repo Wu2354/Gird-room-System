@@ -23,8 +23,8 @@ public class PlacementSystem : MonoBehaviour
     private void Start()
     {
         StopPlacement();
-        floorData = new();
-        furnitureData = new();       
+        floorData = new(previewSystem);
+        furnitureData = new(previewSystem);      
     }
 
     void Update()
@@ -50,6 +50,27 @@ public class PlacementSystem : MonoBehaviour
 
         inputManager.OnClicked += PlaceStructure;//按钮点击放置
         inputManager.OnExit += StopPlacement;//按钮点击停止
+        inputManager.OnRotate += RotatePlacement;
+    }
+
+    private void RotatePlacement()
+    {
+        // 获取当前的BuildingState
+        PlacementState placementState = (PlacementState)buildingState;
+        // 旋转预览
+        previewSystem.RotatePreview();
+        // 更新尺寸
+        placementState.RotateCurrentObjectSize();   
+    }
+
+    public void StartRemoving()
+    {
+        StopPlacement();
+        girdVisualization.SetActive(true);        
+        buildingState = new RemovingState(grid, previewSystem, floorData, furnitureData, objectPlacer);
+
+        inputManager.OnClicked += PlaceStructure;
+        inputManager.OnExit += StopPlacement;   
     }
 
     //放置物体并保存占据的格子信息在GridData中

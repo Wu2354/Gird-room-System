@@ -1,5 +1,7 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using UnityEngine;
 
 public class RemovingState : IBuildingState
@@ -15,7 +17,7 @@ public class RemovingState : IBuildingState
     public RemovingState(Grid grid,
                          PreviewSystem previewSystem,
                          GridData floorData,
-                         GridData furnitureData,
+                         GridData furnitureData,//指代其他物体数据
                          ObjectPlacer objectPlacer)
     {
         this.grid = grid;
@@ -29,16 +31,45 @@ public class RemovingState : IBuildingState
 
     public void EndState()
     {
-        throw new System.NotImplementedException();
+        previewSystem.StopShowingPreview();
     }
 
     public void OnAction(Vector3Int gridPosition)
     {
-        throw new System.NotImplementedException();
+        GridData selectedData = null;
+        if(furnitureData.CanPlaceObjectAt(gridPosition,Vector2Int.one) == false)
+        {
+            selectedData = furnitureData;
+        }
+        else if(floorData.CanPlaceObjectAt(gridPosition,Vector2Int.one) == false)
+        {
+            selectedData = floorData;
+        }
+
+        if(selectedData == null) 
+        {
+            //sound        
+        }
+        else
+        {
+            gameObjectIndex = selectedData.GetRepresnetationIndex(gridPosition);
+            if (gameObjectIndex == -1)
+                return;
+            selectedData.RemoveObjectAt(gridPosition);//从数据库中移除
+            objectPlacer.RemoveObjectAt(gameObjectIndex);//物理世界移除
+        }
+        Vector3 cellPosition = grid.CellToWorld(gridPosition);
+        previewSystem.UpdatePosition(cellPosition, CheckIfSelectionIsValid(gridPosition));
+    }
+
+    private bool CheckIfSelectionIsValid(Vector3Int gridPosition)
+    {
+        return !(furnitureData.CanPlaceObjectAt(gridPosition, Vector2Int.one) && floorData.CanPlaceObjectAt(gridPosition, Vector2Int.one));
     }
 
     public void UpdataState(Vector3Int gridPosition)
     {
-        throw new System.NotImplementedException();
+       bool validity = CheckIfSelectionIsValid(gridPosition);
+        previewSystem.UpdatePosition(grid.CellToWorld(gridPosition), validity);
     }
 }

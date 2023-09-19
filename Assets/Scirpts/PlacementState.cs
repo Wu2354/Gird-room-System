@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -13,6 +14,7 @@ public class PlacementState : IBuildingState
     GridData floorData;
     GridData furnitureData;
     ObjectPlacer objectPlacer;
+    private Vector2Int currentObjectSize;
 
     public PlacementState(int iD,
                          Grid grid,
@@ -29,7 +31,7 @@ public class PlacementState : IBuildingState
         this.database = database;
         this.floorData = floorData;
         this.furnitureData = furnitureData;
-        this.objectPlacer = objectPlacer;
+        this.objectPlacer = objectPlacer;        
 
         selectedObjectIndex = database.objectsData.FindIndex(data => data.ID == ID);//返回ID相同物体在objectsDate的位置，未找到返回-1
         if (selectedObjectIndex >= 0)
@@ -37,6 +39,7 @@ public class PlacementState : IBuildingState
             previewSystem.StartShowingPlacementPreview(
                database.objectsData[selectedObjectIndex].Prefab,
                database.objectsData[selectedObjectIndex].Size);
+            currentObjectSize = database.objectsData[selectedObjectIndex].Size;
         }
         else
             throw new System.Exception($"没物体匹配：{iD}");
@@ -56,13 +59,13 @@ public class PlacementState : IBuildingState
             return;
         }
         int index = objectPlacer.PlaceObject(database.objectsData[selectedObjectIndex].Prefab,
-            grid.CellToWorld(gridPosition));
+            grid.CellToWorld(gridPosition),previewSystem.GetCurrentRotation());
 
         GridData selectedData = database.objectsData[selectedObjectIndex].ID == 0 ?
             floorData :
             furnitureData;
         selectedData.AddObjectAt(gridPosition,
-            database.objectsData[selectedObjectIndex].Size,
+            currentObjectSize,
             database.objectsData[selectedObjectIndex].ID,
             index);
 
@@ -72,11 +75,16 @@ public class PlacementState : IBuildingState
     private bool CheckPlacementValidity(Vector3Int gridPosition, int selectedObjectIndex)
     {
         GridData selectedData = database.objectsData[selectedObjectIndex].ID == 0 ? floorData : furnitureData;//判断是否是地毯（selectedObjectIndex为0）
-        return selectedData.CanPlaceObjectAt(gridPosition, database.objectsData[selectedObjectIndex].Size);
+        return selectedData.CanPlaceObjectAt(gridPosition, currentObjectSize);
     }
     public void UpdataState(Vector3Int gridPosition)
     {
         bool placementValidity = CheckPlacementValidity(gridPosition, selectedObjectIndex);
         previewSystem.UpdatePosition(grid.CellToWorld(gridPosition), placementValidity);
+    }
+
+    public void RotateCurrentObjectSize()
+    {
+        currentObjectSize = new Vector2Int(currentObjectSize.y, currentObjectSize.x);
     }
 }
